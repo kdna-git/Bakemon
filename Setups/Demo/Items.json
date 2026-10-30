@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "id": "leftovers",
+      "name": "Leftovers",
+      "description": "Restores 1/16 of the holder's max HP at the end of every turn.",
+      "triggers": [
+        {
+          "on": "turnEnd",
+          "condition": "self.hp < self.maxHp",
+          "message": "{self} restored a little HP with its {item}!",
+          "effects": [{ "type": "heal", "target": "self", "amount": "max(1, floor(self.maxHp / 16))" }]
+        }
+      ]
+    },
+    {
+      "id": "vigor_berry",
+      "name": "Vigor Berry",
+      "description": "Single use: restores 1/4 of the holder's max HP when its HP drops to 50% or less.",
+      "triggers": [
+        {
+          "on": "damaged",
+          "condition": "self.hpPercent <= 50",
+          "message": "{self} ate its {item} and restored some HP!",
+          "limit": 1,
+          "effects": [
+            { "type": "heal", "target": "self", "amount": "floor(self.maxHp / 4)" },
+            { "type": "consumeItem", "target": "self" }
+          ]
+        }
+      ]
+    }
+  ]
+}

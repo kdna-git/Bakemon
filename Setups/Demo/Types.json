@@ -1,0 +1,18 @@
+{
+  "types": [
+    { "id": "normal", "name": "Normal", "color": "white" },
+    { "id": "fire", "name": "Fire", "color": "red" },
+    { "id": "water", "name": "Water", "color": "blue" },
+    { "id": "grass", "name": "Grass", "color": "green" }
+  ],
+  "chart": {
+    "fire": { "fire": 0.5, "water": 0.5, "grass": 2 },
+    "water": { "fire": 2, "water": 0.5, "grass": 0.5 },
+    "grass": { "fire": 0.5, "water": 2, "grass": 0.5 }
+  },
+  "messages": {
+    "strong": "It's super effective!",
+    "weak": "It's not very effective...",
+    "immune": "It doesn't affect {target}..."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "abilities": [
+    {
+      "id": "menace",
+      "name": "Menace",
+      "description": "On entering the field, it glares at its foes and lowers their Attack by one stage.",
+      "triggers": [
+        {
+          "on": "switchIn",
+          "message": "{self}'s {ability} frightens its foes!",
+          "effects": [
+            { "type": "statStage", "target": "enemies", "stat": "atk", "stages": -1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blaze",
+      "name": "Blaze",
+      "description": "Fire moves deal 1.5x damage while its HP is at 1/3 or less.",
+      "triggers": [
+        {
+          "on": "modifyDamageDealt",
+          "condition": "move.type == 'fire' && self.hp * 3 <= self.maxHp",
+          "effects": [{ "type": "multiplyDamage", "value": 1.5 }]
+        }
+      ]
+    },
+    {
+      "id": "riptide",
+      "name": "Riptide",
+      "description": "Water moves deal 1.5x damage while its HP is at 1/3 or less.",
+      "triggers": [
+        {
+          "on": "modifyDamageDealt",
+          "condition": "move.type == 'water' && self.hp * 3 <= self.maxHp",
+          "effects": [{ "type": "multiplyDamage", "value": 1.5 }]
+        }
+      ]
+    },
+    {
+      "id": "overgrowth",
+      "name": "Overgrowth",
+      "description": "Grass moves deal 1.5x damage while its HP is at 1/3 or less.",
+      "triggers": [
+        {
+          "on": "modifyDamageDealt",
+          "condition": "move.type == 'grass' && self.hp * 3 <= self.maxHp",
+          "effects": [{ "type": "multiplyDamage", "value": 1.5 }]
+        }
+      ]
+    }
+  ]
+}

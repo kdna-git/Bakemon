@@ -1,0 +1,40 @@
+{
+  "name": "Demo",
+  "description": "A small example game: 3v3 singles, actions ordered by priority and then speed.",
+  "turnSystem": "speed_order",
+  "team": { "min": 1, "max": 3, "active": 1, "speciesClause": true, "itemClause": false },
+  "switching": true,
+  "level": { "min": 1, "max": 100, "default": 50 },
+  "maxMoves": 4,
+  "heldItems": true,
+  "stats": [
+    { "id": "hp", "name": "HP" },
+    { "id": "atk", "name": "Attack" },
+    { "id": "def", "name": "Defense" },
+    { "id": "spa", "name": "Sp. Atk" },
+    { "id": "spd", "name": "Sp. Def" },
+    { "id": "spe", "name": "Speed" }
+  ],
+  "hpStat": "hp",
+  "speedStat": "spe",
+  "statFormulas": {
+    "hp": "floor((2 * base + 31 + floor(points / 4)) * level / 100) + level + 10",
+    "default": "floor((2 * base + 31 + floor(points / 4)) * level / 100) + 5"
+  },
+  "statPoints": { "total": 510, "maxPerStat": 252 },
+  "statStages": { "min": -6, "max": 6, "multiplier": "stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage)" },
+  "categories": {
+    "physical": { "attack": "atk", "defense": "def" },
+    "special": { "attack": "spa", "defense": "spd" },
+    "status": {}
+  },
+  "damage": "floor(floor(floor(2 * user.level / 5 + 2) * move.power * attack / defense) / 50 + 2) * (targets > 1 ? 0.75 : 1) * (sameType ? 1.5 : 1) * effectiveness * crit * random(0.85, 1)",
+  "hitChance": "move.accuracy / 100",
+  "critChance": "1 / 24",
+  "critMultiplier": 1.5,
+  "minDamage": 1,
+  "pp": true,
+  "cooldowns": false,
+  "fallbackMove": "struggle",
+  "turnLimit": 500
+}

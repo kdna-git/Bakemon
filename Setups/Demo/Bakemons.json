@@ -1,0 +1,58 @@
+{
+  "bakemons": [
+    {
+      "id": "embercub",
+      "name": "Embercub",
+      "types": ["fire"],
+      "baseStats": { "hp": 55, "atk": 60, "def": 50, "spa": 80, "spd": 55, "spe": 85 },
+      "abilities": ["blaze"],
+      "moves": ["tackle", "swift_strike", "growl", "ember", "flame_rush", "recover"],
+      "description": "A quick little cub with a smouldering tail."
+    },
+    {
+      "id": "cinderhorn",
+      "name": "Cinderhorn",
+      "types": ["fire"],
+      "baseStats": { "hp": 85, "atk": 90, "def": 80, "spa": 60, "spd": 60, "spe": 50 },
+      "abilities": ["menace", "blaze"],
+      "moves": ["tackle", "growl", "harden", "ember", "flame_rush"],
+      "description": "A stocky ram whose horns glow when it charges."
+    },
+    {
+      "id": "puddlefin",
+      "name": "Puddlefin",
+      "types": ["water"],
+      "baseStats": { "hp": 65, "atk": 50, "def": 60, "spa": 80, "spd": 70, "spe": 60 },
+      "abilities": ["riptide"],
+      "moves": ["tackle", "growl", "bubble_jet", "tidal_crash", "recover"],
+      "description": "A round fish that hops between puddles."
+    },
+    {
+      "id": "marshback",
+      "name": "Marshback",
+      "types": ["water"],
+      "baseStats": { "hp": 100, "atk": 75, "def": 90, "spa": 50, "spd": 65, "spe": 30 },
+      "abilities": ["menace", "riptide"],
+      "moves": ["tackle", "harden", "bubble_jet", "tidal_crash"],
+      "description": "A slow river turtle with a shell full of moss."
+    },
+    {
+      "id": "budling",
+      "name": "Budling",
+      "types": ["grass"],
+      "baseStats": { "hp": 70, "atk": 50, "def": 65, "spa": 75, "spd": 75, "spe": 45 },
+      "abilities": ["overgrowth"],
+      "moves": ["tackle", "growl", "vine_whip", "venom_spores", "recover"],
+      "description": "A sleepy sprout that puffs spores when poked."
+    },
+    {
+      "id": "thornbark",
+      "name": "Thornbark",
+      "types": ["grass"],
+      "baseStats": { "hp": 80, "atk": 95, "def": 85, "spa": 50, "spd": 60, "spe": 55 },
+      "abilities": ["menace", "overgrowth"],
+      "moves": ["tackle", "swift_strike", "harden", "vine_whip", "venom_spores"],
+      "description": "A walking stump covered in sharp thorns."
+    }
+  ]
+}

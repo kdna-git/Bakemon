@@ -1,0 +1,45 @@
+{
+  "statuses": [
+    {
+      "id": "burn",
+      "name": "Burn",
+      "short": "BRN",
+      "description": "Loses 1/16 of its max HP at the end of each turn. Attack is halved.",
+      "kind": "major",
+      "stacking": "ignore",
+      "immuneTypes": ["fire"],
+      "statModifiers": { "atk": 0.5 },
+      "triggers": [
+        {
+          "on": "turnEnd",
+          "message": "{self} is hurt by its burn!",
+          "effects": [
+            { "type": "damage", "target": "self", "amount": "max(1, floor(self.maxHp / 16))" }
+          ]
+        }
+      ],
+      "applyMessage": "{target} was burned!",
+      "removeMessage": "{target}'s burn was healed."
+    },
+    {
+      "id": "poison",
+      "name": "Poison",
+      "short": "PSN",
+      "description": "Loses 1/8 of its max HP at the end of each turn.",
+      "kind": "major",
+      "stacking": "ignore",
+      "immuneTypes": ["grass"],
+      "triggers": [
+        {
+          "on": "turnEnd",
+          "message": "{self} is hurt by poison!",
+          "effects": [
+            { "type": "damage", "target": "self", "amount": "max(1, floor(self.maxHp / 8))" }
+          ]
+        }
+      ],
+      "applyMessage": "{target} was poisoned!",
+      "removeMessage": "{target} was cured of its poisoning."
+    }
+  ]
+}

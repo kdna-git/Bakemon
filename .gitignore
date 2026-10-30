@@ -1,0 +1,12 @@
+# Setups are kept locally, only Demo is in the repository
+Setups/*
+!Setups/Demo/
+
+# Build output and the downloaded Kotlin compiler
+build/
+.tools/
+
+# Editors
+.idea/
+.vscode/
+*.iml

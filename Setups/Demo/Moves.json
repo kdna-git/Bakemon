@@ -1,0 +1,167 @@
+{
+  "moves": [
+    {
+      "id": "struggle",
+      "name": "Struggle",
+      "description": "Used only when no other move is usable. The user takes 1/4 of the damage dealt as recoil.",
+      "category": "physical",
+      "power": 50,
+      "pp": 0,
+      "target": "enemy",
+      "flags": ["contact"],
+      "triggers": [
+        {
+          "on": "hit",
+          "condition": "damage > 0",
+          "message": "{user} is damaged by the recoil!",
+          "effects": [
+            { "type": "damage", "target": "user", "amount": "max(1, floor(damage / 4))" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tackle",
+      "name": "Tackle",
+      "description": "A full-body charge at the target.",
+      "type": "normal",
+      "category": "physical",
+      "power": 40,
+      "accuracy": 100,
+      "pp": 35,
+      "target": "enemy",
+      "flags": ["contact"]
+    },
+    {
+      "id": "swift_strike",
+      "name": "Swift Strike",
+      "description": "A lightning-fast blow that always goes first.",
+      "type": "normal",
+      "category": "physical",
+      "power": 40,
+      "accuracy": 100,
+      "priority": 1,
+      "pp": 30,
+      "target": "enemy",
+      "flags": ["contact"]
+    },
+    {
+      "id": "growl",
+      "name": "Growl",
+      "description": "A menacing growl that lowers the target's Attack.",
+      "type": "normal",
+      "category": "status",
+      "accuracy": 100,
+      "pp": 40,
+      "target": "enemy",
+      "flags": ["sound"],
+      "triggers": [
+        { "on": "hit", "effects": [{ "type": "statStage", "stat": "atk", "stages": -1 }] }
+      ]
+    },
+    {
+      "id": "harden",
+      "name": "Harden",
+      "description": "The user tenses up and raises its Defense.",
+      "type": "normal",
+      "category": "status",
+      "pp": 30,
+      "target": "self",
+      "triggers": [
+        { "on": "hit", "effects": [{ "type": "statStage", "target": "self", "stat": "def", "stages": 1 }] }
+      ]
+    },
+    {
+      "id": "recover",
+      "name": "Recover",
+      "description": "The user rests for a moment and restores half of its max HP.",
+      "type": "normal",
+      "category": "status",
+      "pp": 10,
+      "target": "self",
+      "triggers": [
+        { "on": "hit", "effects": [{ "type": "heal", "target": "self", "amount": "floor(self.maxHp / 2)" }] }
+      ]
+    },
+    {
+      "id": "ember",
+      "name": "Ember",
+      "description": "Small flames. 10% chance to burn.",
+      "type": "fire",
+      "category": "special",
+      "power": 40,
+      "accuracy": 100,
+      "pp": 25,
+      "target": "enemy",
+      "triggers": [
+        { "on": "hit", "condition": "damage > 0", "chance": 10, "effects": [{ "type": "applyStatus", "status": "burn" }] }
+      ]
+    },
+    {
+      "id": "flame_rush",
+      "name": "Flame Rush",
+      "description": "A blazing charge. 30% chance to burn.",
+      "type": "fire",
+      "category": "physical",
+      "power": 80,
+      "accuracy": 90,
+      "pp": 15,
+      "target": "enemy",
+      "flags": ["contact"],
+      "triggers": [
+        { "on": "hit", "condition": "damage > 0", "chance": 30, "effects": [{ "type": "applyStatus", "status": "burn" }] }
+      ]
+    },
+    {
+      "id": "bubble_jet",
+      "name": "Bubble Jet",
+      "description": "A spray of bubbles. 10% chance to lower the target's Speed.",
+      "type": "water",
+      "category": "special",
+      "power": 40,
+      "accuracy": 100,
+      "pp": 25,
+      "target": "enemy",
+      "triggers": [
+        { "on": "hit", "condition": "damage > 0", "chance": 10, "effects": [{ "type": "statStage", "stat": "spe", "stages": -1 }] }
+      ]
+    },
+    {
+      "id": "tidal_crash",
+      "name": "Tidal Crash",
+      "description": "Slams into the target behind a heavy wave.",
+      "type": "water",
+      "category": "physical",
+      "power": 80,
+      "accuracy": 100,
+      "pp": 15,
+      "target": "enemy",
+      "flags": ["contact"]
+    },
+    {
+      "id": "vine_whip",
+      "name": "Vine Whip",
+      "description": "Lashes the target with a thin vine.",
+      "type": "grass",
+      "category": "physical",
+      "power": 65,
+      "accuracy": 100,
+      "pp": 25,
+      "target": "enemy",
+      "flags": ["contact"]
+    },
+    {
+      "id": "venom_spores",
+      "name": "Venom Spores",
+      "description": "A cloud of spores that poisons the target.",
+      "type": "grass",
+      "category": "status",
+      "accuracy": 90,
+      "pp": 20,
+      "target": "enemy",
+      "triggers": [
+        { "on": "hit", "effects": [{ "type": "applyStatus", "status": "poison" }] }
+      ]
+    }
+  ]
+}

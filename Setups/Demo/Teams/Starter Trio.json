@@ -1,0 +1,29 @@
+{
+  "name": "Starter Trio",
+  "members": [
+    {
+      "species": "embercub",
+      "level": 50,
+      "ability": "blaze",
+      "item": "leftovers",
+      "moves": ["ember", "flame_rush", "swift_strike", "recover"],
+      "points": { "spa": 252, "spe": 252 }
+    },
+    {
+      "species": "puddlefin",
+      "level": 50,
+      "ability": "riptide",
+      "item": "vigor_berry",
+      "moves": ["bubble_jet", "tidal_crash", "growl", "recover"],
+      "points": { "hp": 252, "spa": 252 }
+    },
+    {
+      "species": "budling",
+      "level": 50,
+      "ability": "overgrowth",
+      "item": "leftovers",
+      "moves": ["vine_whip", "venom_spores", "growl", "recover"],
+      "points": { "hp": 252, "spd": 252 }
+    }
+  ]
+}
