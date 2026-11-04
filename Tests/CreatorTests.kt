@@ -382,7 +382,7 @@ private fun testDraftOperations(temp: File) {
     Check.throws<DraftException>("duplicate id") { draft.add(EntryKind.MOVE, mapOf("id" to "tackle")) }
     val copy = draft.copy(EntryKind.MOVE, "tackle", "Big Tackle")
     Check.eq("big_tackle", copy, "copy gets an id from the new name")
-    Check.eq(listOf("struggle", "tackle", "big_tackle"), draft.ids(EntryKind.MOVE), "copy goes right after the original")
+    Check.eq(listOf("desperate_strike", "tackle", "big_tackle"), draft.ids(EntryKind.MOVE), "copy goes right after the original")
     draft.moveTo(EntryKind.MOVE, "big_tackle", 0)
     Check.eq("big_tackle", draft.ids(EntryKind.MOVE).first(), "reorder")
     Check.ok(draft.isDirty, "dirty after edits")
@@ -407,7 +407,7 @@ private fun testDraftOperations(temp: File) {
     Check.ok(Triggers.describe(RecipeUse("message", mapOf("text" to "Hi")), EffectRecipes.byId("message"), itemCtx).startsWith("show a message"), "labels are lower-cased in summaries")
     val saved = empty.save()
     Check.ok(!saved.validation.ok, "an incomplete setup can be saved and reports errors")
-    Check.ok(File(temp, "Empty/Moves.json").readText().contains("\"struggle\""), "the template's fallback move is created")
+    Check.ok(File(temp, "Empty/Moves.json").readText().contains("\"desperate_strike\""), "the template's fallback move is created")
 }
 
 private fun testBrokenFiles(temp: File) {
@@ -465,14 +465,14 @@ private fun normalized(a: RuleAnswers): RuleAnswers {
 
 private fun testTemplates(temp: File) {
     var i = 0
-    for (style in TurnStyle.entries) for (preset in listOf(StatPreset.POKEMON, StatPreset.GACHA, StatPreset.SIMPLE)) {
+    for (style in TurnStyle.entries) for (preset in listOf(StatPreset.CLASSIC, StatPreset.ACTION_BAR, StatPreset.SIMPLE)) {
         for (growth in Growth.entries) for (damage in DamagePreset.entries) {
             var a = RuleAnswers.forStyle(style).withStatPreset(preset).copy(name = "Template $i", growth = growth, damage = damage)
             val crit = CritMode.entries[i % 3]
             a = a.copy(
-                crits = if (crit == CritMode.FROM_STATS && preset != StatPreset.GACHA) CritMode.FIXED else crit,
+                crits = if (crit == CritMode.FROM_STATS && preset != StatPreset.ACTION_BAR) CritMode.FIXED else crit,
                 moveLimit = MoveLimit.entries[(i / 3) % 3],
-                fallbackMove = if (i % 2 == 0) "struggle" else null,
+                fallbackMove = if (i % 2 == 0) "desperate_strike" else null,
                 stages = StageStyle.entries[i % 2],
                 statPoints = i % 2 == 0,
                 hitTypes = i % 3 == 0,
@@ -507,7 +507,7 @@ private fun testTemplates(temp: File) {
     Check.ok(RuleTemplate.problems(RuleAnswers().copy(crits = CritMode.FROM_STATS)).isNotEmpty(), "crits from missing stats is a problem")
     val rules = RuleTemplate.build(RuleAnswers())
     Check.eq("floor(floor(floor(2 * user.level / 5 + 2) * move.power * attack / defense) / 50 + 2) * (targets > 1 ? 0.75 : 1) * (sameType ? 1.5 : 1) * effectiveness * crit * random(0.85, 1)",
-        rules["damage"], "Pokemon damage formula")
+        rules["damage"], "Classic damage formula")
     Check.eq("floor(base * (0.5 + level / 80))", RuleTemplate.build(RuleAnswers.forStyle(TurnStyle.ACTION_BAR))["statFormulas"].let { (it as Map<*, *>)["hp"] }, "linear growth formula")
 }
 
@@ -517,7 +517,7 @@ private fun testTemplateUpdate(root: File) {
     val rules = classic.rules()
     val rec = classic.recogniseRules()
     Check.ok(RulePart.CRITS in rec.custom, "Classic's hand-written crit chance is detected: ${rec.custom}")
-    Check.ok(RulePart.DAMAGE !in rec.custom && RulePart.GROWTH !in rec.custom, "Classic's damage and growth match the Pokemon template")
+    Check.ok(RulePart.DAMAGE !in rec.custom && RulePart.GROWTH !in rec.custom, "Classic's damage and growth use the Classic templates")
     val newAnswers = rec.answers.copy(turnLimit = 100)
     val parts = RuleTemplate.changedParts(rec.answers, newAnswers)
     Check.eq(setOf(RulePart.TURN_LIMIT), parts, "only the turn limit changes")
@@ -841,7 +841,8 @@ private fun testRename(root: File, temp: File) {
     draft.rename(EntryKind.MOVE, move, "${move}_x")
     draft.rename(EntryKind.ABILITY, ability, "${ability}_x")
     draft.rename(EntryKind.ITEM, item, "${item}_x")
-    draft.rename(EntryKind.MOVE, "struggle", "flail")
+    val fallbackId = draft.rules()["fallbackMove"] as String
+    draft.rename(EntryKind.MOVE, fallbackId, "flail")
     Check.eq("flail", draft.rules()["fallbackMove"], "the fallback move follows the rename")
     Check.throws<DraftException>("rename to a taken id") { draft.rename(EntryKind.MOVE, "tackle", "flail") }
     val result = draft.save()
@@ -855,7 +856,7 @@ private fun testRename(root: File, temp: File) {
 
 private fun testRenameStat(root: File, temp: File) {
     if (!hasSetup(root, "Gacha")) return
-    val dir = copySetup(root, "Gacha", temp, "Gacha Stat")
+    val dir = copySetup(root, "Gacha", temp, "Action Bar Stat")
     val draft = SetupDraft.load(dir)
     val refs = draft.statReferences("crate")
     Check.ok(refs.any { it.inFormula } && refs.any { it.file == "Bakemons.json" }, "crate is used by formulas and base stats: ${refs.size}")
@@ -864,7 +865,7 @@ private fun testRenameStat(root: File, temp: File) {
     Check.eq("speed", draft.rules()["speedStat"], "speedStat follows")
     Check.throws<DraftException>("bad stat id") { draft.renameStat("atk", "1x") }
     val result = draft.save()
-    Check.ok(result.validation.ok && result.validation.warnings.isEmpty(), "Gacha with renamed stats is valid: ${result.validation.errors.take(3)} ${result.validation.warnings.take(3)}")
+    Check.ok(result.validation.ok && result.validation.warnings.isEmpty(), "Action Bar with renamed stats is valid: ${result.validation.errors.take(3)} ${result.validation.warnings.take(3)}")
     Check.ok(!allText(dir).contains("crate"), "no 'crate' left")
     teamsValid(dir, "stat rename")
 }
@@ -944,7 +945,7 @@ private fun testEndToEnd(temp: File) {
         move(MoveForms.blank(m, "Recover", "recover").copy(category = m.categories.first { it.value !in m.damagingCategories }.value,
             power = RecipeUse("none", emptyMap()), target = "self", accuracy = null,
             triggers = listOf(guided(TriggerSpec("hit", effects = listOf(RecipeUse("heal_max_hp", mapOf("percent" to 50.0, "target" to "user"))))))))
-        move(MoveForms.blank(m, "Rain Dance", "rain_dance").copy(category = m.categories.first { it.value !in m.damagingCategories }.value,
+        move(MoveForms.blank(m, "Rainfall", "rain_dance").copy(category = m.categories.first { it.value !in m.damagingCategories }.value,
             power = RecipeUse("none", emptyMap()), target = "self", accuracy = null,
             triggers = listOf(guided(TriggerSpec("hit", effects = listOf(RecipeUse("set_field", mapOf("field" to "rain"))))))))
         move(MoveForms.blank(m, "Sonic Strike", "sonic_strike").copy(power = RecipeUse("fixed_damage", mapOf("level" to false, "amount" to 20.0))))

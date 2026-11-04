@@ -611,7 +611,7 @@ class SetupCreator(private val root: File) {
         if (RulePart.STATS in parts) fixBaseStats(draft, oldStats, new.stats)
         val fallback = new.fallbackMove
         if (RulePart.MOVE_LIMITS in parts && new.moveLimit == MoveLimit.PP && fallback != null && !draft.contains(EntryKind.MOVE, fallback)) {
-            if (Terminal.confirm("Create the fallback move '$fallback' (a typeless Struggle that hurts the user)?", true)) {
+            if (Terminal.confirm("Create the fallback move '$fallback' (a typeless Desperate Strike that hurts the user)?", true)) {
                 RuleTemplate.starterEntries(new)[EntryKind.MOVE]?.forEach { if (!draft.contains(EntryKind.MOVE, it["id"] as String)) draft.add(EntryKind.MOVE, it) }
             }
         }
@@ -746,7 +746,7 @@ class SetupCreator(private val root: File) {
             println("  " + a.stats.joinToString(", ") { "${it.name} " + Terminal.dim("(${it.id})") })
             println("  HP stat: ${statLabel(a, a.hpStat)}, speed stat: ${statLabel(a, a.speedStat)}")
             val actions = mutableListOf<Pair<String, () -> Unit>>()
-            actions += "Use a ready-made list (Pokemon / Gacha / Simple)" to {
+            actions += "Use a ready-made list (Classic / Action Bar / Simple)" to {
                 val presets = StatPreset.entries.filter { it != StatPreset.CUSTOM }
                 val i = CreatorInput.choose("Stats", presets.map { Option(it.name, it.label, it.help) }, null, "Cancel")
                 if (i >= 0) a = a.withStatPreset(presets[i])
@@ -901,11 +901,11 @@ class SetupCreator(private val root: File) {
             return values[i]
         }
 
-        /** The fallback move: one of the setup's moves, or a new Struggle created for you. */
+        /** The fallback move: one of the setup's moves, or a new Desperate Strike created for you. */
         private fun pickFallback(): String {
-            val fresh = generateSequence(1) { it + 1 }.map { if (it == 1) "struggle" else "struggle_$it" }.first { id -> moves.none { it.value == id } }
+            val fresh = generateSequence(1) { it + 1 }.map { if (it == 1) "desperate_strike" else "desperate_strike_$it" }.first { id -> moves.none { it.value == id } }
             if (moves.isEmpty()) return a.fallbackMove ?: fresh
-            val options = moves + Option(NEW_MOVE, "A new Struggle move", "created for you: typeless, never misses, hurts the user")
+            val options = moves + Option(NEW_MOVE, "A new Desperate Strike move", "created for you: typeless, never misses, hurts the user")
             val chosen = CreatorInput.chooseValue("Which move?", options, a.fallbackMove?.takeIf { id -> moves.any { it.value == id } } ?: NEW_MOVE, null)
             return if (chosen == null || chosen == NEW_MOVE) fresh else chosen
         }
@@ -930,7 +930,7 @@ class SetupCreator(private val root: File) {
                 RulePart.TEAM -> {
                     val min = CreatorInput.int("Smallest team", 1..99, a.teamMin, "Monsters per team: at least...")
                     val max = CreatorInput.int("Largest team", min..99, maxOf(min, a.teamMax))
-                    val active = CreatorInput.int("Monsters on the field per side", 1..max, minOf(a.active, max), "1 = singles, 2 = doubles; gacha battles often have 4.")
+                    val active = CreatorInput.int("Monsters on the field per side", 1..max, minOf(a.active, max), "1 = singles, 2 = doubles; action bar battles often have 4.")
                     a = a.copy(teamMin = min, teamMax = max, active = active)
                     a = a.copy(switching = CreatorInput.yesNo("Can players switch monsters during a battle?", a.switching))
                     a = a.copy(speciesClause = CreatorInput.yesNo("Species clause (no species twice in a team)?", a.speciesClause))
@@ -950,10 +950,10 @@ class SetupCreator(private val root: File) {
                     a = a.copy(growth = pick("How do stats grow with the level?", Growth.entries, { it.label }, { it.help }, a.growth))
                     if (a.growth != Growth.FLAT && a.stats.size > 1) {
                         val chosen = CreatorInput.pickMany("Stats that grow with the level", a.stats.map { Option(it.id, it.name) },
-                            a.stats.filter { it.grows }.map { it.id }, intro = "The others keep their base value at every level (e.g. crit rate in gacha games).")
+                            a.stats.filter { it.grows }.map { it.id }, intro = "The others keep their base value at every level (e.g. crit rate in action bar games).")
                         if (chosen != null) a = a.copy(stats = a.stats.map { it.copy(grows = it.id in chosen) })
                     }
-                    a = a.copy(statPoints = CreatorInput.yesNo("Stat points (like EVs or runes: players spread extra points)?", a.statPoints))
+                    a = a.copy(statPoints = CreatorInput.yesNo("Stat points (like training points or runes: players spread extra points)?", a.statPoints))
                     if (a.statPoints) {
                         val total = CreatorInput.int("Points per monster", 1..100000, a.statPointsTotal)
                         a = a.copy(statPointsTotal = total, statPointsMax = CreatorInput.int("At most per stat", 1..total, minOf(a.statPointsMax, total)))
@@ -991,12 +991,12 @@ class SetupCreator(private val root: File) {
                     }
                 }
                 RulePart.HIT_TYPES -> a = a.copy(hitTypes = CreatorInput.yesNo("Glancing and crushing hits?", a.hitTypes,
-                    "Gacha style: weak matchups may glance (x0.7), strong ones may crush (x1.3)."))
+                    "Action Bar style: weak matchups may glance (x0.7), strong ones may crush (x1.3)."))
                 RulePart.MOVE_LIMITS -> {
                     a = a.copy(moveLimit = pick("What limits how often a move is used?", MoveLimit.entries, { it.label }, { it.help }, a.moveLimit))
                     if (a.moveLimit == MoveLimit.PP) {
                         val wants = CreatorInput.yesNo("A fallback move for when every move is out of PP?", a.fallbackMove != null,
-                            "Used when no other move is left (e.g. a typeless Struggle that hurts the user).")
+                            "Used when no other move is left (e.g. a typeless Desperate Strike that hurts the user).")
                         a = a.copy(fallbackMove = if (!wants) null else pickFallback())
                     }
                 }

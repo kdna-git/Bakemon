@@ -20,7 +20,7 @@ import util.Json
  * never fails on letters or empty input; end of input still ends the program (Terminal.InputClosed).
  */
 internal object CreatorInput {
-    /** Entries per page in long lists (PokemonGen1 has 343 moves). */
+    /** Entries per page in long lists (a large setup has 343 moves). */
     const val PAGE_SIZE = 20
 
     /** Typed at a text prompt to clear an optional value. */

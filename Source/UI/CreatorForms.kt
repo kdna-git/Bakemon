@@ -1131,7 +1131,7 @@ internal class EntryForms(private val draft: SetupDraft) {
         /** "user.atk * 3.6" (a "Power from a stat" move). */
         private val STAT_POWER = Regex("^user[.]([A-Za-z0-9_]+) [*] ([0-9.]+)$")
 
-        /** Suggested base values of the gacha stats that are percentages (the others start at 50). */
+        /** Suggested base values of the action bar stats that are percentages (the others start at 50). */
         private val STAT_DEFAULTS = mapOf("crate" to 15.0, "cdmg" to 50.0, "res" to 15.0, "acc" to 0.0)
 
         /** Colours suggested for new types, most readable first. */

@@ -35,6 +35,6 @@
   "minDamage": 1,
   "pp": true,
   "cooldowns": false,
-  "fallbackMove": "struggle",
+  "fallbackMove": "desperate_strike",
   "turnLimit": 500
 }

@@ -289,7 +289,7 @@ data class RecipeContext(
     val actionBar: Boolean = false,
     val pp: Boolean = true,
     val cooldowns: Boolean = false,
-    /** True when the rules use the Gacha damage template (move power is the attacking value, e.g. "user.atk * 3.6"). */
+    /** True when the rules use the Action Bar damage template (move power is the attacking value, e.g. "user.atk * 3.6"). */
     val powerFromStats: Boolean = false,
     /** Id of the entry being edited (statuses refer to themselves, e.g. "wake up when hit" removes this status). */
     val entryId: String = "",
@@ -370,7 +370,7 @@ data class RecipeContext(
                 actionBar = rules.str("turnSystem").equals("action_bar", true),
                 pp = rules["pp"] != false,
                 cooldowns = rules["cooldowns"] == true,
-                powerFromStats = recognition.answers.damage == DamagePreset.GACHA && RulePart.DAMAGE !in recognition.custom,
+                powerFromStats = recognition.answers.damage == DamagePreset.ACTION_BAR && RulePart.DAMAGE !in recognition.custom,
                 entryId = entryId,
                 sideField = entry?.str("scope").equals("side", true),
                 draft = draft,

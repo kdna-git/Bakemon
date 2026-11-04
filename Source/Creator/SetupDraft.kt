@@ -699,7 +699,7 @@ class SetupDraft private constructor(
         /**
          * A new setup called [name] under [setupsRoot] (folder name from the name, unique), with the Rules.json the
          * rule template builds from [answers] and empty lists (plus the template's starter entries, such as a
-         * Struggle-like fallback move when PP is used). Nothing is written until [save].
+         * Desperate Strike-like fallback move when PP is used). Nothing is written until [save].
          */
         fun create(setupsRoot: File, name: String, answers: RuleAnswers): SetupDraft {
             val folder = File(setupsRoot.absoluteFile, folderNameFor(setupsRoot, name))

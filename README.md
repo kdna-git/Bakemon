@@ -3,8 +3,8 @@
 A small Kotlin engine that runs turn-based monster battles defined entirely by JSON files.
 One engine runs both:
 
-- **Pokemon-style** battles (`"turnSystem": "speed_order"`): every active monster picks an action each round, and actions run by priority, then speed.
-- **Gacha / ATB-style** battles (`"turnSystem": "action_bar"`): each monster fills an action bar based on its speed, and whoever fills it first acts.
+- **Classic-style** battles (`"turnSystem": "speed_order"`): every active monster picks an action each round, and actions run by priority, then speed.
+- **Action-bar / ATB-style** battles (`"turnSystem": "action_bar"`): each monster fills an action bar based on its speed, and whoever fills it first acts.
 
 Each folder in `Setups/` is a separate game (a **setup**) with its own monsters, moves, types and rules.
 
@@ -48,11 +48,11 @@ new or broken setup can always be reached and fixed.
 needed to battle is missing) or `N files cannot be read` (a JSON syntax error). Pick a setup to edit it, or create a
 new setup, rename a setup folder, or delete a setup (asked twice; "no" is the default both times).
 
-**A new setup** starts from rule templates: a name, how turns work (Pokemon-like rounds or a gacha action bar), which
-stats monsters have (Pokemon, Gacha, Simple or your own list), then the rules as a list of questions (team size,
+**A new setup** starts from rule templates: a name, how turns work (Classic-style rounds or an action-bar turn order), which
+stats monsters have (Classic, Action Bar, Simple or your own list), then the rules as a list of questions (team size,
 levels, stat growth, damage, accuracy, critical hits, PP or cooldowns...). Each choice has a one-line help and each
 question a recommended answer in brackets: Enter accepts it. The rules and their formulas are generated from the answers. The setup starts
-empty (plus a typeless Struggle fallback move when moves use PP); it is saved at once and a checklist shows what is
+empty (plus a typeless Desperate Strike fallback move when moves use PP); it is saved at once and a checklist shows what is
 still needed to battle (types, moves, bakemons...), with a link to each section.
 
 **The setup editor** has Rules, Types, Statuses, Moves, Abilities, Items, Fields and Bakemons, plus:
@@ -348,7 +348,7 @@ Unknown variable or function names, and battle functions called with the wrong n
 ```jsonc
 {
   "name": "Demo",
-  "description": "Pokemon-like singles",
+  "description": "Classic-style singles",
   "turnSystem": "speed_order",            // "speed_order" | "action_bar"
   "team": { "min": 1, "max": 6, "active": 1, "speciesClause": true, "itemClause": false },
   "switching": true,                      // can a player switch as their action?
@@ -380,7 +380,7 @@ Unknown variable or function names, and battle functions called with the wrong n
   "minDamage": 1,                         // damaging hits deal at least this much (unless immune)
   "pp": true,                             // use the moves' pp
   "cooldowns": false,                     // use the moves' cooldown
-  "fallbackMove": "struggle",             // used when no move is usable (optional)
+  "fallbackMove": "desperate_strike",     // used when no move is usable (optional)
   "actionBar": { "size": 100, "fill": "speed", "start": "0" },  // action_bar only
   "turnLimit": 300,                       // 0 = no limit; the battle is a draw after this many turns
   "startFields": [ { "field": "rain", "duration": 5 } ]   // optional, see "Fields.json"
@@ -419,7 +419,7 @@ The `damage` formula and the `hitTypes` formulas also see `hitIndex` and `hitCou
 
 **Hit types**
 
-`hitTypes` is an ordered list of special kinds of hits, such as the crushing and glancing hits of gacha games.
+`hitTypes` is an ordered list of special kinds of hits, such as the crushing and glancing hits of action bar games.
 On every hit that deals damage (each hit of a multi-hit move, never a hit a type immunity stops), right after the crit
 roll, the entries are tried in order: the first whose `chance` roll succeeds is this hit's type; if none does, it is a
 normal hit. Each entry:
@@ -626,7 +626,7 @@ When it faints, its statuses are cleared after its `fainted` triggers ran (statu
 ## Fields.json
 
 Optional. A **field** is something that affects the battle itself rather than one monster: weather, a terrain, a
-screen, an entry hazard, a "trick room"... A field is either **global** (it covers every monster of both sides) or
+screen, an entry hazard, a "speed inversion"... A field is either **global** (it covers every monster of both sides) or
 on **one side** (it covers that side's monsters). Fields never belong to a monster: they keep working when the monster
 that set them faints or switches out. Moves, abilities, items, statuses and other fields start and end them with the
 `setField` and `removeField` effects; a battle can also start with some (`Rules.json` `startFields`, or a choice in the
@@ -681,7 +681,7 @@ field that ends also hears its own `fieldRemoved` (it can react to its own end, 
 
 **Countdown.** A field with a duration counts down by itself, not in a monster's turns:
 - `speed_order`: at the end of every round, after every monster's `turnEnd` and status countdown, **including the round
-  it was set in**. A 5-turn Rain Dance used in round 1 ends at the end of round 5 (as in Pokemon).
+  it was set in**. A 5-turn Rainfall used in round 1 ends at the end of round 5 (as in Classic-style rounds).
 - `action_bar`: at the end of every turn of a monster of the side that **set** it (the turn it was set in counts).
   Fields with no setter (start fields) count down at the end of every turn.
 When `turnsLeft` reaches 0 the field ends: its end message, then `fieldRemoved`.
@@ -699,7 +699,7 @@ When `turnsLeft` reaches 0 the field ends: its end message, then `fieldRemoved`.
 | `blockStatStage`, `blockStatStageMessage` | condition (`self` = the covered target, `other` = the source; variables `stat`, `stages` = the requested change): true = the stage change does not happen. Message default `"{self} is protected by {field}!"` (placeholders `{self}` `{target}` `{other}` `{stat}` (its name) `{field}`; `""` = silent) |
 
 For example Safeguard is `"blockStatus": "statusKind == 'major' && !sameSide(self, other)"` on a side field, Mist is
-`"blockStatStage": "stages < 0 && !sameSide(self, other)"`, Trick Room is a global field with `"reverseSpeed": true`,
+`"blockStatStage": "stages < 0 && !sameSide(self, other)"`, Speed Inversion is a global field with `"reverseSpeed": true`,
 Gravity is `"blockMove": "hasFlag('flying')"` and Stealth Rock is a side field with a `switchIn` trigger that deals
 `"floor(self.maxHp * typeMultiplier('rock', self) / 8)"`.
 

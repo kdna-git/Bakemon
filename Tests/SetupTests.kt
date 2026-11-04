@@ -96,7 +96,7 @@ private val RULES = """
   "categories": { "physical": { "attack": "atk", "defense": "def" }, "status": {} },
   "damage": "floor(floor(2 * user.level / 5 + 2) * move.power * attack / defense / 50 + 2) * (sameType ? 1.5 : 1) * effectiveness * crit * random(0.85, 1)",
   "critChance": "1 / 24",
-  "fallbackMove": "struggle",
+  "fallbackMove": "desperate_strike",
   "actionBar": { "fill": "speed", "start": "random(0, 10)" }
 }
 """.trimIndent()
@@ -148,7 +148,7 @@ private val MOVES = """
     "triggers": [ { "on": "hit", "effects": [
       { "type": "statStage", "target": "self", "stat": "atk", "stages": 2 },
       { "type": "applyStatus", "target": "self", "status": "boost", "duration": 2 } ] } ] },
-  { "id": "struggle", "name": "Struggle", "category": "physical", "power": 50,
+  { "id": "desperate_strike", "name": "Desperate Strike", "category": "physical", "power": 50,
     "triggers": [ { "on": "afterMove", "effects": [ { "type": "damage", "target": "self", "amount": "floor(self.maxHp / 4)" } ] } ] }
 ] }
 """.trimIndent()
@@ -217,14 +217,14 @@ private val FIELDS = """
 private val FIELD_BASE = BASE
     .set("Fields.json", FIELDS)
     .with(
-        "Moves.json", "{ \"id\": \"struggle\"",
-        "{ \"id\": \"rain_dance\", \"name\": \"Rain Dance\", \"category\": \"status\", \"target\": \"self\", \"triggers\": [ { \"on\": \"hit\", " +
+        "Moves.json", "{ \"id\": \"desperate_strike\"",
+        "{ \"id\": \"rain_dance\", \"name\": \"Rainfall\", \"category\": \"status\", \"target\": \"self\", \"triggers\": [ { \"on\": \"hit\", " +
             "\"effects\": [ { \"type\": \"setField\", \"field\": \"rain\" }, { \"type\": \"removeField\", \"group\": \"hazards\", \"side\": \"self\" } ] } ] },\n  " +
-            "{ \"id\": \"struggle\"",
+            "{ \"id\": \"desperate_strike\"",
     )
     .with(
-        "Rules.json", "\"fallbackMove\": \"struggle\",",
-        "\"fallbackMove\": \"struggle\",\n  \"startFields\": [ { \"field\": \"spikes\", \"side\": \"side2\" }, { \"field\": \"rain\", \"duration\": 2 } ],",
+        "Rules.json", "\"fallbackMove\": \"desperate_strike\",",
+        "\"fallbackMove\": \"desperate_strike\",\n  \"startFields\": [ { \"field\": \"spikes\", \"side\": \"side2\" }, { \"field\": \"rain\", \"duration\": 2 } ],",
     )
 
 /** Only the required files, with as many defaults as possible. */
@@ -294,7 +294,7 @@ private fun testValidSetup(temp: File) {
     Check.ok(rules.statPointsEnabled, "stat points enabled")
     Check.eq(100, rules.statPointsTotal, "statPoints.total")
     Check.eq(60, rules.statPointsMax, "statPoints.maxPerStat")
-    Check.eq("struggle", rules.fallbackMove, "fallbackMove")
+    Check.eq("desperate_strike", rules.fallbackMove, "fallbackMove")
     Check.ok(rules.categories.getValue("physical").dealsDamage, "physical deals damage")
     Check.ok(!rules.categories.getValue("status").dealsDamage, "status deals no damage")
     Check.near(1.0 / 24, rules.critChance.eval(MapContext(emptyMap())), "critChance")
@@ -326,9 +326,9 @@ private fun testValidSetup(temp: File) {
     Check.ok(!setup.isDamaging(growl), "growl is not damaging")
     Check.eq(MoveTarget.ALL_ENEMIES, growl.target, "growl target")
     Check.eq(1, growl.triggers.size, "growl triggers")
-    val struggle = setup.moves.require("struggle")
-    Check.eq(null, struggle.accuracy, "no accuracy = never misses")
-    Check.eq(null, struggle.type, "typeless move")
+    val desperate_strike = setup.moves.require("desperate_strike")
+    Check.eq(null, desperate_strike.accuracy, "no accuracy = never misses")
+    Check.eq(null, desperate_strike.type, "typeless move")
     Check.eq(null, setup.moves.require("bubble").power?.constant, "formula power")
     Check.near(0.125, setup.moves.require("shadow_claw").critBonus?.constant ?: -1.0, "critBonus")
 
@@ -414,7 +414,7 @@ private fun testErrors(temp: File) {
     expectErrors(temp, "BadVariable", BASE.with("Moves.json", "\"power\": 40, \"accuracy\": 100, \"pp\": 35", "\"power\": \"user.atkk\", \"accuracy\": 100, \"pp\": 35"),
         "Moves.json: moves[0] (tackle).power: unknown variable 'user.atkk'", "did you mean 'user.atk'")
     expectErrors(temp, "BadFunction", BASE.with("Abilities.json", "hasStatus(self, 'burn')", "hasStatuss(self, 'burn')"), "unknown function 'hasStatuss'")
-    expectErrors(temp, "BadMoveEvent", BASE.with("Moves.json", "{ \"on\": \"afterMove\"", "{ \"on\": \"turnEnd\""), "struggle", "event 'turnEnd' cannot be used in a move trigger")
+    expectErrors(temp, "BadMoveEvent", BASE.with("Moves.json", "{ \"on\": \"afterMove\"", "{ \"on\": \"turnEnd\""), "desperate_strike", "event 'turnEnd' cannot be used in a move trigger")
     val dup = expectErrors(temp, "DuplicateId", BASE.with("Moves.json", "{ \"id\": \"ember\"", "{ \"id\": \"tackle\", \"category\": \"physical\" },\n  { \"id\": \"ember\""), "duplicate id 'tackle'")
     Check.eq(1, errorCount(dup), "a duplicate id is one error:\n$dup")
     val syntax = expectErrors(temp, "BadSyntax", BASE.with("Moves.json", "\"pp\": 35, \"flags\"", "\"pp\": 35 \"flags\""), "Moves.json")
@@ -422,7 +422,7 @@ private fun testErrors(temp: File) {
     expectErrors(temp, "UnknownStatStage", BASE.with("Moves.json", "\"stat\": \"atk\", \"stages\": -1", "\"stat\": \"attk\", \"stages\": -1"), "unknown stat 'attk'")
     expectErrors(temp, "UnknownCategory", BASE.with("Moves.json", "\"category\": \"physical\", \"power\": 70", "\"category\": \"special\", \"power\": 70"), "unknown category 'special'")
     expectErrors(temp, "UnknownMoveType", BASE.with("Moves.json", "\"type\": \"ghost\"", "\"type\": \"spirit\""), "unknown type 'spirit'")
-    expectErrors(temp, "UnknownFallback", BASE.with("Rules.json", "\"fallbackMove\": \"struggle\"", "\"fallbackMove\": \"strugle\""), "fallbackMove: unknown move 'strugle'")
+    expectErrors(temp, "UnknownFallback", BASE.with("Rules.json", "\"fallbackMove\": \"desperate_strike\"", "\"fallbackMove\": \"strugle\""), "fallbackMove: unknown move 'strugle'")
     expectErrors(temp, "NoMoves", BASE.with("Bakemons.json", "\"moves\": [\"growl\"]", "\"moves\": []"), "pebble", "has no moves")
     expectErrors(temp, "ChartType", BASE.with("Types.json", "\"normal\": { \"ghost\": 0 }", "\"normal\": { \"ghost\": -1, \"ice\": 2 }"), "unknown defending type 'ice'", "must be 0 or more")
     expectErrors(temp, "ImmuneType", BASE.with("Statuses.json", "\"immuneTypes\": [\"fire\"]", "\"immuneTypes\": [\"fyre\"]"), "unknown type 'fyre'")
@@ -650,7 +650,7 @@ private fun testHitTypes(temp: File) {
     val crushing = """{ "id": "crushing", "chance": "effectiveness > 1 && !isCrit ? 100 : 0", "multiplier": 1.3, "message": "Crushing hit on {target}!" }"""
     val glancing = """{ "id": "glancing", "chance": "effectiveness < 1 ? 50 : 0", "multiplier": "0.7", "cancelsCrit": true }"""
     fun withHitTypes(vararg entries: String, base: Fixture = BASE) =
-        base.with("Rules.json", "\"fallbackMove\": \"struggle\",", "\"fallbackMove\": \"struggle\", \"hitTypes\": [ ${entries.joinToString(", ")} ],")
+        base.with("Rules.json", "\"fallbackMove\": \"desperate_strike\",", "\"fallbackMove\": \"desperate_strike\", \"hitTypes\": [ ${entries.joinToString(", ")} ],")
 
     val valid = withHitTypes(crushing, glancing, """{ "id": "plain_luck", "chance": 5 }""")
         .with("Rules.json", "\"critChance\": \"1 / 24\"", "\"critChance\": \"effectiveness > 1 ? 0.2 : 1 / 24\", \"critMultiplier\": \"sameType ? 2 : 1.5\", \"hitChance\": \"effectiveness < 1 ? 0.9 : 1\"")
@@ -676,7 +676,7 @@ private fun testHitTypes(temp: File) {
     expectErrors(temp, "HitTypeNotObject", withHitTypes("\"crushing\""), "Rules.json.hitTypes[0]: expected an object")
     expectErrors(
         temp, "HitTypesNotArray",
-        BASE.with("Rules.json", "\"fallbackMove\": \"struggle\",", "\"fallbackMove\": \"struggle\", \"hitTypes\": { \"id\": \"crushing\" },"),
+        BASE.with("Rules.json", "\"fallbackMove\": \"desperate_strike\",", "\"fallbackMove\": \"desperate_strike\", \"hitTypes\": { \"id\": \"crushing\" },"),
         "Rules.json.hitTypes: expected an array",
     )
     expectErrors(temp, "HitTypeSyntax", withHitTypes("""{ "id": "crushing", "chance": "10 +" }"""), "Rules.json.hitTypes[0] (crushing).chance: ")
@@ -1010,7 +1010,7 @@ private fun reportBundledSetups(root: File) {
 // ---------------------------------------------------------------------------------------------------------------
 // More triggers, targets, effects and move behaviours
 
-/** Moves that use every new move key, target and effect (inserted before Struggle in [BASE]). */
+/** Moves that use every new move key, target and effect (inserted before Desperate Strike in [BASE]). */
 private val TRIGGER_MOVES = """
   { "id": "triple_kick", "name": "Triple Kick", "type": "normal", "category": "physical", "power": "20 * hitIndex", "accuracy": 90,
     "hits": 3, "hitAccuracy": "each", "ignoreDefense": "hitIndex == hitCount ? 50 : 0",
@@ -1052,7 +1052,7 @@ private val TRIGGER_ABILITY = """
 """
 
 private val TRIGGER_BASE = BASE
-    .with("Moves.json", "{ \"id\": \"struggle\"", TRIGGER_MOVES.trim() + "\n  { \"id\": \"struggle\"")
+    .with("Moves.json", "{ \"id\": \"desperate_strike\"", TRIGGER_MOVES.trim() + "\n  { \"id\": \"desperate_strike\"")
     .with("Abilities.json", "{ \"id\": \"guts\"", TRIGGER_ABILITY.trim() + "\n  { \"id\": \"guts\"")
 
 private fun testTriggerExtensions(temp: File) {

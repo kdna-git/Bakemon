@@ -1027,7 +1027,7 @@ private class Planner(val battle: Battle, val actor: Battler, val level: AiLevel
         return total * STATUS_SCALE
     }
 
-    /** Rules.statStages.multiplier at [stage] (Pokemon-like default if the formula fails). */
+    /** Rules.statStages.multiplier at [stage] (Classic-style default if the formula fails). */
     private fun stageMultiplier(stage: Int): Double {
         val fallback = if (stage >= 0) (2.0 + stage) / 2.0 else 2.0 / (2.0 - stage)
         val value = attempt(fallback) {

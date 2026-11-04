@@ -9,9 +9,9 @@ import java.io.File
 
 /** How turns are scheduled. See README "Turn systems". */
 enum class TurnSystem(val id: String) {
-    /** Pokemon-like rounds: everybody chooses, then actions run by priority and speed. */
+    /** Classic-style rounds: everybody chooses, then actions run by priority and speed. */
     SPEED_ORDER("speed_order"),
-    /** Gacha-like ATB: speed fills an action bar; whoever fills it first acts. */
+    /** Action-bar-style ATB: speed fills an action bar; whoever fills it first acts. */
     ACTION_BAR("action_bar");
 
     companion object {

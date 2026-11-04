@@ -510,7 +510,7 @@ object FieldView {
         )
         lines += rule
         globalFieldsLine(battle)?.let { lines += it }
-        // The second side is drawn on top, the first at the bottom (like "you" in Pokemon).
+        // The second side is drawn on top, the first at the bottom (like "you" in Classic).
         battle.sides.reversed().forEachIndexed { i, side ->
             if (i > 0) lines += ""
             lines += sideHeader(battle, side)

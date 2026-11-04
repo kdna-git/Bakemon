@@ -2,14 +2,14 @@ package creator
 
 /** How turns work (Rules.json "turnSystem"). */
 enum class TurnStyle(val id: String, val label: String, val help: String) {
-    SPEED_ORDER("speed_order", "Pokemon-like rounds", "Everybody picks an action, then actions run by priority and speed."),
-    ACTION_BAR("action_bar", "Gacha action bar", "Speed fills an action bar; whoever fills it first acts."),
+    SPEED_ORDER("speed_order", "Classic-style rounds", "Everybody picks an action, then actions run by priority and speed."),
+    ACTION_BAR("action_bar", "Action-bar turn order", "Speed fills an action bar; whoever fills it first acts."),
 }
 
 /** A starting list of stats. */
 enum class StatPreset(val label: String, val help: String) {
-    POKEMON("Pokemon", "HP, Attack, Defense, Sp. Atk, Sp. Def, Speed"),
-    GACHA("Gacha", "HP, Attack, Defense, Speed, Crit Rate, Crit Damage, Resistance, Accuracy"),
+    CLASSIC("Classic", "HP, Attack, Defense, Sp. Atk, Sp. Def, Speed"),
+    ACTION_BAR("Action Bar", "HP, Attack, Defense, Speed, Crit Rate, Crit Damage, Resistance, Accuracy"),
     SIMPLE("Simple", "HP, Attack, Defense, Speed"),
     CUSTOM("Custom", "your own list of stats"),
 }
@@ -19,15 +19,15 @@ data class StatAnswer(val id: String, val name: String, val grows: Boolean = tru
 
 /** How stats grow with the level (Rules.json "statFormulas"). */
 enum class Growth(val label: String, val help: String) {
-    POKEMON("Pokemon formula", "base, level and stat points like EVs (at level 100 a stat is about 2 x base + 36)"),
+    CLASSIC("Classic formula", "base, level and stat points like training points (at level 100 a stat is about 2 x base + 36)"),
     LINEAR("Linear by level", "half the base value at level 0, the full base value at the maximum level"),
     FLAT("Flat", "the base value, whatever the level"),
 }
 
 /** How damage is computed (Rules.json "damage"). */
 enum class DamagePreset(val label: String, val help: String) {
-    POKEMON("Pokemon", "the official formula: level, power, attack / defense, random 0.85-1"),
-    GACHA("Gacha", "power x 1000 / (1140 + 3.5 x defense); a move's power is usually a share of the user's Attack (360% of ATK)"),
+    CLASSIC("Classic", "the official formula: level, power, attack / defense, random 0.85-1"),
+    ACTION_BAR("Action Bar", "power x 1000 / (1140 + 3.5 x defense); a move's power is usually a share of the user's Attack (360% of ATK)"),
     SIMPLE("Simple", "power x attack / defense / 2"),
 }
 
@@ -53,13 +53,13 @@ enum class MoveLimit(val label: String, val help: String) {
 
 /** Action bar fill rate. */
 enum class BarFill(val formula: String, val label: String) {
-    GACHA("speed * 0.07", "speed x 0.07 (Summoners War-like)"),
+    ACTION_BAR("speed * 0.07", "speed x 0.07 (action-bar style)"),
     SPEED("speed", "speed"),
 }
 
 /** Stat stages. */
 enum class StageStyle(val label: String) {
-    POKEMON("Pokemon (-6 to +6)"),
+    CLASSIC("Classic (-6 to +6)"),
     NONE("No stat stages"),
 }
 
@@ -81,7 +81,7 @@ enum class RulePart(val label: String, val keys: List<String>) {
     TURN_LIMIT("Turn limit", listOf("turnLimit")),
 }
 
-/** The answers to the rule template's questions. The defaults make a Pokemon-like setup (see [forStyle]). */
+/** The answers to the rule template's questions. The defaults make a Classic-style setup (see [forStyle]). */
 data class RuleAnswers(
     val name: String = "",
     val description: String = "",
@@ -99,21 +99,21 @@ data class RuleAnswers(
     val levelDefault: Int = 50,
     val maxMoves: Int = 4,
     val heldItems: Boolean = true,
-    val statPreset: StatPreset = StatPreset.POKEMON,
-    val stats: List<StatAnswer> = RuleTemplate.presetStats(StatPreset.POKEMON),
+    val statPreset: StatPreset = StatPreset.CLASSIC,
+    val stats: List<StatAnswer> = RuleTemplate.presetStats(StatPreset.CLASSIC),
     val hpStat: String = "hp",
     val speedStat: String = "spe",
-    val growth: Growth = Growth.POKEMON,
+    val growth: Growth = Growth.CLASSIC,
     val statPoints: Boolean = true,
     val statPointsTotal: Int = 510,
     val statPointsMax: Int = 252,
-    val stages: StageStyle = StageStyle.POKEMON,
+    val stages: StageStyle = StageStyle.CLASSIC,
     val categories: CategoryStyle = CategoryStyle.PHYSICAL_SPECIAL,
     val attackStat: String = "atk",
     val defenseStat: String = "def",
     val specialAttackStat: String = "spa",
     val specialDefenseStat: String = "spd",
-    val damage: DamagePreset = DamagePreset.POKEMON,
+    val damage: DamagePreset = DamagePreset.CLASSIC,
     /** Type effectiveness multiplies the damage. */
     val typeEffectiveness: Boolean = true,
     /** Same-type bonus (1 = none). */
@@ -125,12 +125,12 @@ data class RuleAnswers(
     val critMultiplier: Double = 1.5,
     val critRateStat: String = "crate",
     val critDamageStat: String = "cdmg",
-    /** Glancing and crushing hits (gacha). */
+    /** Glancing and crushing hits (action bar). */
     val hitTypes: Boolean = false,
     val moveLimit: MoveLimit = MoveLimit.PP,
-    /** With PP: the id of the fallback move the template creates (a typeless Struggle), or null for none. */
-    val fallbackMove: String? = "struggle",
-    val barFill: BarFill = BarFill.GACHA,
+    /** With PP: the id of the fallback move the template creates (a typeless Desperate Strike), or null for none. */
+    val fallbackMove: String? = "desperate_strike",
+    val barFill: BarFill = BarFill.ACTION_BAR,
     /** Action bars start with a random 0-15% fill (otherwise empty). */
     val barRandomStart: Boolean = false,
     /** 0 = no limit. */
@@ -139,31 +139,31 @@ data class RuleAnswers(
     /** These answers with the stats (and the stat ids used by categories, crits, HP and speed) of [preset]. */
     fun withStatPreset(preset: StatPreset): RuleAnswers {
         if (preset == StatPreset.CUSTOM) return copy(statPreset = preset)
-        val pokemon = preset == StatPreset.POKEMON
+        val classic = preset == StatPreset.CLASSIC
         return copy(
             statPreset = preset,
             stats = RuleTemplate.presetStats(preset),
             hpStat = "hp",
-            speedStat = if (preset == StatPreset.GACHA) "spd" else "spe",
-            categories = if (pokemon) CategoryStyle.PHYSICAL_SPECIAL else CategoryStyle.ATTACK_SUPPORT,
+            speedStat = if (preset == StatPreset.ACTION_BAR) "spd" else "spe",
+            categories = if (classic) CategoryStyle.PHYSICAL_SPECIAL else CategoryStyle.ATTACK_SUPPORT,
             attackStat = "atk",
             defenseStat = "def",
             specialAttackStat = "spa",
             specialDefenseStat = "spd",
-            crits = if (preset == StatPreset.GACHA) CritMode.FROM_STATS else if (crits == CritMode.FROM_STATS) CritMode.FIXED else crits,
+            crits = if (preset == StatPreset.ACTION_BAR) CritMode.FROM_STATS else if (crits == CritMode.FROM_STATS) CritMode.FIXED else crits,
         )
     }
 
     companion object {
-        /** Sensible defaults for a style: Pokemon-like singles, or a 4v4 gacha setup with cooldowns. */
+        /** Sensible defaults for a style: Classic-style singles, or a 4v4 action bar setup with cooldowns. */
         fun forStyle(style: TurnStyle): RuleAnswers = when (style) {
             TurnStyle.SPEED_ORDER -> RuleAnswers()
             TurnStyle.ACTION_BAR -> RuleAnswers(
                 turnSystem = TurnStyle.ACTION_BAR, teamMin = 1, teamMax = 5, active = 4, switching = false,
                 levelMin = 1, levelMax = 40, levelDefault = 40, maxMoves = 3, growth = Growth.LINEAR, statPoints = false,
-                stages = StageStyle.NONE, damage = DamagePreset.GACHA, sameTypeBonus = 1.0, movesCanMiss = false,
+                stages = StageStyle.NONE, damage = DamagePreset.ACTION_BAR, sameTypeBonus = 1.0, movesCanMiss = false,
                 hitTypes = true, moveLimit = MoveLimit.COOLDOWNS, fallbackMove = null, turnLimit = 300,
-            ).withStatPreset(StatPreset.GACHA)
+            ).withStatPreset(StatPreset.ACTION_BAR)
         }
     }
 }
@@ -187,11 +187,11 @@ object RuleTemplate {
 
     /** The stats of a preset. */
     fun presetStats(preset: StatPreset): List<StatAnswer> = when (preset) {
-        StatPreset.POKEMON, StatPreset.CUSTOM -> listOf(
+        StatPreset.CLASSIC, StatPreset.CUSTOM -> listOf(
             StatAnswer("hp", "HP"), StatAnswer("atk", "Attack"), StatAnswer("def", "Defense"),
             StatAnswer("spa", "Sp. Atk"), StatAnswer("spd", "Sp. Def"), StatAnswer("spe", "Speed"),
         )
-        StatPreset.GACHA -> listOf(
+        StatPreset.ACTION_BAR -> listOf(
             StatAnswer("hp", "HP"), StatAnswer("atk", "Attack"), StatAnswer("def", "Defense"), StatAnswer("spd", "Speed", false),
             StatAnswer("crate", "Crit Rate", false), StatAnswer("cdmg", "Crit Damage", false),
             StatAnswer("res", "Resistance", false), StatAnswer("acc", "Accuracy", false),
@@ -244,7 +244,7 @@ object RuleTemplate {
 
     /** Formula of a stat that grows with the level. */
     private fun growFormula(a: RuleAnswers, hp: Boolean): String = when (a.growth) {
-        Growth.POKEMON -> {
+        Growth.CLASSIC -> {
             val inner = if (a.statPoints) "2 * base + 31 + floor(points / 4)" else "2 * base + 31"
             "floor(($inner) * level / 100) + " + if (hp) "level + 10" else "5"
         }
@@ -256,7 +256,7 @@ object RuleTemplate {
 
     private fun statFormulas(a: RuleAnswers): MutableMap<String, Any?> {
         val each = a.stats.associate { s ->
-            s.id to if (s.grows) growFormula(a, s.id == a.hpStat && a.growth == Growth.POKEMON) else flatFormula(a)
+            s.id to if (s.grows) growFormula(a, s.id == a.hpStat && a.growth == Growth.CLASSIC) else flatFormula(a)
         }
         // "default" = the formula most stats use (ties: the growing one).
         val counts = each.values.groupingBy { it }.eachCount()
@@ -271,8 +271,8 @@ object RuleTemplate {
     private fun damageFormula(a: RuleAnswers): String {
         val factors = mutableListOf(
             when (a.damage) {
-                DamagePreset.POKEMON -> "floor(floor(floor(2 * user.level / 5 + 2) * move.power * attack / defense) / 50 + 2) * (targets > 1 ? 0.75 : 1)"
-                DamagePreset.GACHA -> "move.power * 1000 / (1140 + 3.5 * defense)"
+                DamagePreset.CLASSIC -> "floor(floor(floor(2 * user.level / 5 + 2) * move.power * attack / defense) / 50 + 2) * (targets > 1 ? 0.75 : 1)"
+                DamagePreset.ACTION_BAR -> "move.power * 1000 / (1140 + 3.5 * defense)"
                 DamagePreset.SIMPLE -> "move.power * attack / defense / 2"
             },
         )
@@ -281,8 +281,8 @@ object RuleTemplate {
         if (a.crits != CritMode.NONE) factors += "crit"
         if (a.randomSpread) {
             factors += when (a.damage) {
-                DamagePreset.POKEMON -> "random(0.85, 1)"
-                DamagePreset.GACHA -> "random(0.95, 1.05)"
+                DamagePreset.CLASSIC -> "random(0.85, 1)"
+                DamagePreset.ACTION_BAR -> "random(0.95, 1.05)"
                 DamagePreset.SIMPLE -> "random(0.9, 1.1)"
             }
         }
@@ -321,7 +321,7 @@ object RuleTemplate {
         r["statFormulas"] = statFormulas(a)
         if (a.statPoints) r["statPoints"] = linkedMapOf<String, Any?>("total" to a.statPointsTotal.toDouble(), "maxPerStat" to a.statPointsMax.toDouble())
         r["statStages"] = when (a.stages) {
-            StageStyle.POKEMON -> linkedMapOf<String, Any?>("min" to -6.0, "max" to 6.0, "multiplier" to DEFAULT_STAGE_MULTIPLIER)
+            StageStyle.CLASSIC -> linkedMapOf<String, Any?>("min" to -6.0, "max" to 6.0, "multiplier" to DEFAULT_STAGE_MULTIPLIER)
             StageStyle.NONE -> linkedMapOf<String, Any?>("min" to 0.0, "max" to 0.0, "multiplier" to "1")
         }
         r["categories"] = when (a.categories) {
@@ -364,17 +364,17 @@ object RuleTemplate {
     }
 
     /**
-     * Entries the template adds to a new setup: with PP and a fallback move, a typeless Struggle-like move that
+     * Entries the template adds to a new setup: with PP and a fallback move, a typeless Desperate Strike-like move that
      * never misses and costs the user 1/4 of its max HP.
      */
     fun starterEntries(a: RuleAnswers): Map<EntryKind, List<Map<String, Any?>>> {
         val fallback = a.fallbackMove
         if (a.moveLimit != MoveLimit.PP || fallback == null) return emptyMap()
         val category = if (a.categories == CategoryStyle.PHYSICAL_SPECIAL) "physical" else "attack"
-        val power: Any = if (a.damage == DamagePreset.GACHA) "user.${a.attackStat} * 1" else 50.0
+        val power: Any = if (a.damage == DamagePreset.ACTION_BAR) "user.${a.attackStat} * 1" else 50.0
         val move = linkedMapOf<String, Any?>(
             "id" to fallback,
-            "name" to "Struggle",
+            "name" to "Desperate Strike",
             "description" to "Used only when no other move is usable. The user loses 1/4 of its max HP.",
             "category" to category,
             "power" to power,
@@ -466,7 +466,7 @@ object RuleTemplate {
         a = recogniseGrowth(rules, a)
 
         val stages = rules["statStages"] as? Map<*, *>
-        a = a.copy(stages = if (stages != null && int(stages, "min", -6) == 0 && int(stages, "max", 6) == 0) StageStyle.NONE else StageStyle.POKEMON)
+        a = a.copy(stages = if (stages != null && int(stages, "min", -6) == 0 && int(stages, "max", 6) == 0) StageStyle.NONE else StageStyle.CLASSIC)
 
         val categories = rules["categories"] as? Map<*, *>
         if (categories != null && categories.keys == setOf("physical", "special", "status")) {
@@ -508,7 +508,7 @@ object RuleTemplate {
         val bar = rules["actionBar"] as? Map<*, *>
         if (bar != null) {
             a = a.copy(
-                barFill = BarFill.entries.firstOrNull { it.formula == bar["fill"] } ?: BarFill.GACHA,
+                barFill = BarFill.entries.firstOrNull { it.formula == bar["fill"] } ?: BarFill.ACTION_BAR,
                 barRandomStart = bar["start"] == "random(0, 15)",
             )
         }
@@ -530,7 +530,7 @@ object RuleTemplate {
             var ok = true
             val stats = a.stats.map { s ->
                 val f = effective(s.id)
-                val grow = growFormula(a, s.id == a.hpStat && growth == Growth.POKEMON)
+                val grow = growFormula(a, s.id == a.hpStat && growth == Growth.CLASSIC)
                 when (f) {
                     grow -> s.copy(grows = true)
                     flat -> s.copy(grows = false)

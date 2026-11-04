@@ -26,17 +26,17 @@ fun runAiTests(root: File) {
     val tmp = Files.createTempDirectory("bakemon-ai-tests").toFile()
     try {
         val classic = aiLoadSetup(File(tmp, "AiClassic"), AI_CLASSIC_FILES)
-        val gacha = aiLoadSetup(File(tmp, "AiGacha"), AI_GACHA_FILES)
+        val actionBar = aiLoadSetup(File(tmp, "AiActionBar"), AI_ACTION_BAR_FILES)
         if (classic != null) {
             Check.guard("ai: speed_order choices") { aiClassicChoiceTests(classic) }
             Check.guard("ai: fields") { aiFieldTests(classic) }
             Check.guard("ai: speed_order random states") { aiFuzzTests(classic, 150, 11L) }
             Check.guard("ai: speed_order battles") { aiBattleTests(classic) }
         }
-        if (gacha != null) {
-            Check.guard("ai: action_bar choices") { aiGachaChoiceTests(gacha) }
-            Check.guard("ai: action_bar random states") { aiFuzzTests(gacha, 150, 23L) }
-            Check.guard("ai: action_bar battles") { aiBattleTests(gacha) }
+        if (actionBar != null) {
+            Check.guard("ai: action_bar choices") { aiActionBarChoiceTests(actionBar) }
+            Check.guard("ai: action_bar random states") { aiFuzzTests(actionBar, 150, 23L) }
+            Check.guard("ai: action_bar battles") { aiBattleTests(actionBar) }
         }
         Check.guard("ai: triggers") { runAiTriggerTests(tmp) }
     } finally {
@@ -133,7 +133,7 @@ private fun aiClassicChoiceTests(setup: Setup) {
         me.moves.forEach { it.pp = 0 }
         for (ai in listOf(easy, normal, hard)) {
             val action = ai.chooseAction(battle, me)
-            Check.ok(action is Action.UseMove && action.slot == null && action.isMove("struggle", foe), "${ai.level.id}: struggles without PP (got $action)")
+            Check.ok(action is Action.UseMove && action.slot == null && action.isMove("desperate_strike", foe), "${ai.level.id}: uses the fallback move without PP (got $action)")
         }
     }
 
@@ -228,7 +228,7 @@ private fun aiClassicChoiceTests(setup: Setup) {
     }
 }
 
-private fun aiGachaChoiceTests(setup: Setup) {
+private fun aiActionBarChoiceTests(setup: Setup) {
     Check.section("ai: action_bar choices")
     val levels = listOf(AiController("N", AiLevel.NORMAL), AiController("H", AiLevel.HARD))
     val battle = aiCraft(
@@ -612,12 +612,12 @@ private fun aiLoadSetup(dir: File, files: Map<String, String>): Setup? {
 // ---------------------------------------------------------------------------------------------------------------
 // Test setups
 
-/** Pokemon-like singles (speed_order, PP, switching, fallback move). */
+/** Classic-style singles (speed_order, PP, switching, fallback move). */
 private val AI_CLASSIC_FILES = mapOf(
     "Rules.json" to """
         {
           "name": "AI test classic",
-          "description": "Small Pokemon-like setup for the AI tests",
+          "description": "Small Classic-style setup for the AI tests",
           "turnSystem": "speed_order",
           "team": { "min": 1, "max": 3, "active": 1, "speciesClause": false, "itemClause": false },
           "switching": true,
@@ -647,7 +647,7 @@ private val AI_CLASSIC_FILES = mapOf(
           "minDamage": 1,
           "pp": true,
           "cooldowns": false,
-          "fallbackMove": "struggle",
+          "fallbackMove": "desperate_strike",
           "turnLimit": 150
         }
     """,
@@ -742,7 +742,7 @@ private val AI_CLASSIC_FILES = mapOf(
             "triggers": [ { "on": "hit", "effects": [ { "type": "statStage", "stat": "atk", "stages": -1 } ] } ] },
           { "id": "agility", "name": "Agility", "category": "status", "pp": 30, "target": "self",
             "triggers": [ { "on": "hit", "effects": [ { "type": "applyStatus", "target": "self", "status": "pumped" } ] } ] },
-          { "id": "struggle", "name": "Struggle", "category": "physical", "power": 50, "pp": 0, "target": "enemy",
+          { "id": "desperate_strike", "name": "Desperate Strike", "category": "physical", "power": 50, "pp": 0, "target": "enemy",
             "triggers": [ { "on": "hit", "effects": [ { "type": "damage", "target": "self", "amount": "max(1, floor(self.maxHp / 4))" } ] } ] },
           { "id": "light_screen", "name": "Light Screen", "category": "status", "pp": 20, "target": "self",
             "triggers": [ { "on": "hit", "effects": [ { "type": "setField", "field": "screen" } ] } ] },
@@ -792,11 +792,11 @@ private val AI_CLASSIC_FILES = mapOf(
     """,
 )
 
-/** Gacha-like 2v2 (action_bar, cooldowns, no PP, no switching, no fallback move). */
-private val AI_GACHA_FILES = mapOf(
+/** Action-bar-style 2v2 (action_bar, cooldowns, no PP, no switching, no fallback move). */
+private val AI_ACTION_BAR_FILES = mapOf(
     "Rules.json" to """
         {
-          "name": "AI test gacha",
+          "name": "AI test action bar",
           "description": "Small 2v2 action bar setup for the AI tests",
           "turnSystem": "action_bar",
           "team": { "min": 2, "max": 3, "active": 2, "speciesClause": true, "itemClause": false },

@@ -280,7 +280,7 @@ object Presets {
             },
         ),
         Recipe(
-            "reverse_order", "Reverse turn order", "Slower monsters act first (Trick Room-like). Pokemon-like rounds only.",
+            "reverse_order", "Reverse turn order", "Slower monsters act first (speed-inversion). Classic-style rounds only.",
             { _ -> emptyList() },
             { _, _ -> frag("rules" to linkedMapOf<String, Any?>("reverseSpeed" to true)) },
             { j, _ -> if (((j as? Map<*, *>)?.get("rules") as? Map<*, *>)?.get("reverseSpeed") == true) emptyMap() else null },

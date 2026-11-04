@@ -353,8 +353,8 @@ private fun uiCreatorNewSetup(temp: File) {
         "",             // empty input at a menu without a default: asked again
         "1",            // Create a new setup
         "UI Game",
-        "",             // turns: Pokemon-like rounds
-        "",             // stats: Pokemon
+        "",             // turns: Classic-style rounds
+        "",             // stats: Classic
         "",             // answer the other questions now? no
         "",             // Create the setup (Enter = Done)
         "1", "1", "Fire", "",                           // checklist > Types > add Fire (suggested colour)
@@ -389,7 +389,7 @@ private fun uiCreatorNewSetup(temp: File) {
     Check.eq(listOf("fire", "water"), setup.types.all().map { it.id }, "types")
     Check.eq(2.0, setup.types.single("water", "fire"), "Water is strong against Fire")
     Check.eq(0.5, setup.types.single("fire", "water"), "Fire is weak against Water")
-    Check.eq(listOf("struggle", "ember"), setup.moves.all().map { it.id }, "moves (the template's Struggle and Ember)")
+    Check.eq(listOf("desperate_strike", "ember"), setup.moves.all().map { it.id }, "moves (the template's Desperate Strike and Ember)")
     Check.eq(listOf("burn"), setup.statuses.all().map { it.id }, "statuses")
     Check.eq(listOf("blaze"), setup.abilities.all().map { it.id }, "abilities")
     Check.eq(listOf("berry"), setup.items.all().map { it.id }, "items")
@@ -405,7 +405,7 @@ private fun uiCreatorNewSetup(temp: File) {
     Check.eq(listOf("ember"), species[0]["moves"], "the moves of its types")
     Check.eq(listOf("blaze"), species[0]["abilities"], "Cinder's ability")
     Check.eq(65.0, (species[0]["baseStats"] as Map<*, *>)["spe"], "base stats typed one by one")
-    Check.eq(listOf("struggle"), species[1]["moves"], "the moves without a type")
+    Check.eq(listOf("desperate_strike"), species[1]["moves"], "the moves without a type")
     Check.ok(File(dir, "Teams").isDirectory && File(dir, "Assets/README.txt").isFile, "Teams/ and Assets/ are created")
     // Battles in the new setup.
     var code = -1

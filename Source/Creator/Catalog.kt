@@ -660,7 +660,7 @@ object EffectRecipes {
                 val first = if (ctx.owner == OwnerKind.MOVE) RecipeUse("damage_max_hp", mapOf("percent" to 25.0, "base" to "maxHp"))
                 else RecipeUse("heal_max_hp", mapOf("percent" to 25.0, "base" to "maxHp"))
                 listOf(
-                    P.number("turns", "After how many turns", "counted on that monster's turns: 1 = the end of its current or next turn (Pokemon-like rounds: the end of this round)", 2.0, min = 1.0, max = 99.0, integer = true, formula = false),
+                    P.number("turns", "After how many turns", "counted on that monster's turns: 1 = the end of its current or next turn (Classic-style rounds: the end of this round)", 2.0, min = 1.0, max = 99.0, integer = true, formula = false),
                     Param("attachTo", "Whose turns count", "empty = " + if (ctx.owner == OwnerKind.MOVE) "the target" else "itself", ParamType.Choice(attach), null, optional = true),
                     Param("effects", "Effects", "what happens then (edited like a trigger's DO)", ParamType.Effects(NOT_DELAYED), listOf(first)),
                     message("shown when the effects run; empty = none"),
@@ -1028,7 +1028,7 @@ object ConditionRecipes {
             { it.owner != OwnerKind.MOVE && it.hasOther }, RecipeGroups.COND_BATTLE,
         ),
         regexRecipe(
-            "acted", "Has already acted", "Pokemon-like rounds: it already acted this round; action bar: it is the monster whose turn it is.",
+            "acted", "Has already acted", "Classic-style rounds: it already acted this round; action bar: it is the monster whose turn it is.",
             { ctx -> listOf(P.choice("who", "Who", "", P.whoOptions(ctx)), P.choice("state", "Which", "", listOf(Option("already", "already acted"), Option("not", "has not acted yet")))) },
             { v -> (if (v.str("state") == "not") "!" else "") + "${v.str("who")}.acted" },
             Regex("^(!?)$WHO\\.acted$"), { m -> mapOf("who" to m.groupValues[2], "state" to if (m.groupValues[1] == "!") "not" else "already") },
@@ -1214,7 +1214,7 @@ object PowerRecipes {
             { j, _ -> if (j is Map<*, *> && (j.isEmpty() || (j.keys == setOf("power") && (j["power"] as? Number)?.toDouble() == 0.0))) emptyMap() else null },
         ),
         Recipe(
-            "stat_based", "Power from a stat", "Power equals a share of the user's stat (gacha style: 360% of Attack).",
+            "stat_based", "Power from a stat", "Power equals a share of the user's stat (action bar style: 360% of Attack).",
             { ctx -> listOf(P.choice("stat", "Stat", "the user's stat", ctx.stats, default = ctx.stats.firstOrNull { it.value == "atk" }?.value ?: ctx.stats.firstOrNull()?.value), P.percent("percent", "Percent of the stat", "360 = 3.6 times the stat", 100.0, max = null)) },
             { v, _ -> mapOf("power" to "user.${v.str("stat")} * ${JsonTools.fraction(v.num("percent"))}") },
             { j, ctx ->

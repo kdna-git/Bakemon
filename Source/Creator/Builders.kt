@@ -78,7 +78,7 @@ object TypeForms {
 
     /**
      * Chart multiplier choices for a type matchup: strong / weak / immune / neutral, plus the other values already used
-     * in the chart (a gacha setup may use 1.3 / 0.7). "custom" means any other number.
+     * in the chart (an action bar setup may use 1.3 / 0.7). "custom" means any other number.
      */
     fun multiplierChoices(draft: SetupDraft): List<Option> {
         val standard = listOf(

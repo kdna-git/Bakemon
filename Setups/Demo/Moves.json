@@ -1,8 +1,8 @@
 {
   "moves": [
     {
-      "id": "struggle",
-      "name": "Struggle",
+      "id": "desperate_strike",
+      "name": "Desperate Strike",
       "description": "Used only when no other move is usable. The user takes 1/4 of the damage dealt as recoil.",
       "category": "physical",
       "power": 50,

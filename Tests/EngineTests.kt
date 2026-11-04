@@ -257,7 +257,7 @@ private class EngineLab(private val dir: File) {
         move("ember", "type" to "fire"),
         move("bubble", "type" to "water"),
         move("jab", "pp" to 2),
-        move("struggle", "power" to 10),
+        move("desperate_strike", "power" to 10),
         move("triple", "power" to 10, "hits" to 3),
         move("multi", "power" to 10, "hits" to "randint(2, 5)"),
         move("whiff", "accuracy" to 0, "triggers" to json("""[{"on": "missed", "message": "Whiffed!", "effects": []}]""")),
@@ -968,13 +968,13 @@ private fun damageTests(lab: EngineLab) {
     }
     run {
         val critSetup = lab.setup(lab.rules("critChance" to "1"))
-        val (m, rec) = field(critSetup, team(member("plain", "struggle", "fury")), team(member("plain", "tackle")))
-        m.use(m.mon(0), "struggle")
+        val (m, rec) = field(critSetup, team(member("plain", "desperate_strike", "fury")), team(member("plain", "tackle")))
+        m.use(m.mon(0), "desperate_strike")
         Check.eq(180, m.mon(1).hp, "forced crit doubles 10")
         Check.ok(rec.has("A critical hit!"), "crit message")
-        val r = m.damage.calculate(m.battle, m.mon(0), m.mon(1), critSetup.moves.require("struggle"), 1, forceCrit = false)
+        val r = m.damage.calculate(m.battle, m.mon(0), m.mon(1), critSetup.moves.require("desperate_strike"), 1, forceCrit = false)
         Check.ok(r.damage == 10 && !r.isCrit, "forceCrit = false")
-        Check.near(1.0, m.damage.critChance(m.battle, m.mon(0), m.mon(1), critSetup.moves.require("struggle")), "crit chance")
+        Check.near(1.0, m.damage.critChance(m.battle, m.mon(0), m.mon(1), critSetup.moves.require("desperate_strike")), "crit chance")
         m.use(m.mon(0), "fury")
         Check.eq(80, m.mon(1).hp, "power formula damage (50 x 2)")
     }
@@ -1000,12 +1000,12 @@ private fun damageTests(lab: EngineLab) {
     }
     run {
         // multiplyDamage from an ability (dealt), an item (taken) and a move trigger.
-        val (m, _) = field(setup, team(member("plain", "tackle", "lucky", "struggle", ability = "brute")), team(member("plain", "tackle", item = "armor")))
+        val (m, _) = field(setup, team(member("plain", "tackle", "lucky", "desperate_strike", ability = "brute")), team(member("plain", "tackle", item = "armor")))
         m.use(m.mon(0), "tackle")
         Check.eq(140, m.mon(1).hp, "40 x 1.5 (STAB) x 2 (contact ability) x 0.5 (item)")
         m.use(m.mon(0), "lucky")
         Check.eq(80, m.mon(1).hp, "40 x 3 (move trigger) x 0.5 (item)")
-        m.use(m.mon(0), "struggle")
+        m.use(m.mon(0), "desperate_strike")
         Check.eq(75, m.mon(1).hp, "no contact flag: 10 x 0.5")
     }
     run {
@@ -1281,30 +1281,30 @@ private fun orderTests(lab: EngineLab) {
     }
     run {
         // PP runs out -> fallback move (no PP spent for it).
-        val ppSetup = lab.setup(lab.rules("turnLimit" to 4, "fallbackMove" to "struggle"))
+        val ppSetup = lab.setup(lab.rules("turnLimit" to 4, "fallbackMove" to "desperate_strike"))
         val (m, rec) = battle(ppSetup, team(member("plain", "jab")), team(member("slow", "wait")), Script(choose = use("jab")), idle)
         Check.eq(listOf(1, 2), rec.turnsOf("Plain used Jab!"), "jab twice (pp 2)")
-        Check.eq(listOf(3, 4), rec.turnsOf("Plain used Struggle!"), "then the fallback move")
+        Check.eq(listOf(3, 4), rec.turnsOf("Plain used Desperate Strike!"), "then the fallback move")
         Check.eq(0, m.mon(0).moves[0].pp, "pp spent")
-        Check.eq(200 - 80 - 20, m.mon(1).hp, "damage of 2 jabs + 2 struggles")
+        Check.eq(200 - 80 - 20, m.mon(1).hp, "damage of 2 jabs + 2 desperate strikes")
     }
     run {
         // Usable moves without any legal target (an ally move in singles) count as "no usable move".
-        val fbSetup = lab.setup(lab.rules("turnLimit" to 2, "fallbackMove" to "struggle"))
-        val struggle = fbSetup.moves.require("struggle")
-        val fallback = Script { battle, actor -> Action.UseMove(struggle, null, battle.targetOptions(actor, struggle).firstOrNull()) }
+        val fbSetup = lab.setup(lab.rules("turnLimit" to 2, "fallbackMove" to "desperate_strike"))
+        val desperate_strike = fbSetup.moves.require("desperate_strike")
+        val fallback = Script { battle, actor -> Action.UseMove(desperate_strike, null, battle.targetOptions(actor, desperate_strike).firstOrNull()) }
         val (_, rec) = battle(fbSetup, team(member("plain", "cheer")), team(member("slow", "wait")), fallback, idle)
-        Check.eq(listOf(1, 2), rec.turnsOf("Plain used Struggle!"), "fallback accepted when no move has a target")
+        Check.eq(listOf(1, 2), rec.turnsOf("Plain used Desperate Strike!"), "fallback accepted when no move has a target")
         // A move without a legal target is not a legal choice: chosen anyway, it is replaced by the first legal action.
         val (_, rec2) = battle(fbSetup, team(member("plain", "cheer")), team(member("slow", "wait")), Script(choose = use("cheer")), idle)
-        Check.eq(listOf(1, 2), rec2.turnsOf("Plain used Struggle!"), "a targetless ally move chosen on purpose becomes the fallback move")
+        Check.eq(listOf(1, 2), rec2.turnsOf("Plain used Desperate Strike!"), "a targetless ally move chosen on purpose becomes the fallback move")
         Check.ok(!rec2.has("Plain used Cheer!") && !rec2.has("But there was no target..."), "and is never used: ${rec2.texts()}")
         // allAllies with no ally: the same (it used to count as having a target, so the fallback never came).
         val (_, rec3) = battle(fbSetup, team(member("plain", "rally")), team(member("slow", "wait")), Script(choose = use("rally")), idle)
-        Check.eq(listOf(1, 2), rec3.turnsOf("Plain used Struggle!"), "allAllies alone on the field: the fallback move")
+        Check.eq(listOf(1, 2), rec3.turnsOf("Plain used Desperate Strike!"), "allAllies alone on the field: the fallback move")
         for (level in engine.AiLevel.entries) {
             val (_, rec4) = battle(fbSetup, team(member("plain", "rally")), team(member("slow", "wait")), engine.AiController("AI", level), idle)
-            Check.eq(listOf(1, 2), rec4.turnsOf("Plain used Struggle!"), "${level.id} AI: allAllies alone on the field is not an option: ${rec4.texts()}")
+            Check.eq(listOf(1, 2), rec4.turnsOf("Plain used Desperate Strike!"), "${level.id} AI: allAllies alone on the field is not an option: ${rec4.texts()}")
         }
     }
     run {
@@ -1616,7 +1616,7 @@ private fun guardTests(lab: EngineLab) {
         val random = lab.setup(
             lab.rules(
                 "damage" to "floor(move.power * attack / defense * random(0.85, 1) * crit)", "critChance" to "0.2",
-                "fallbackMove" to "struggle",
+                "fallbackMove" to "desperate_strike",
             )
         )
         fun play(seed: Long): List<String> {
@@ -2100,7 +2100,7 @@ private fun hitTypeTests(lab: EngineLab) {
     }
 }
 
-/** Regression checks on the shipped Classic and Gacha data. */
+/** Regression checks on the shipped Classic and Action Bar data. */
 /** Evaluates [formula] for [self] (other = [other]) in [m]'s battle. */
 private fun Manager.eval(formula: String, self: Battler, other: Battler? = null): Double = Formula.parse(formula).eval(battle.context(self, other))
 
@@ -2388,12 +2388,12 @@ private fun fieldRuleTests(lab: EngineLab) {
     run {
         val s = lab.setup(lab.rules("turnLimit" to 1, "startFields" to listOf(mapOf("field" to "room"))))
         val (_, rec) = battle(s, team(member("slow", "tackle")), team(member("swift", "tackle")), Script(choose = use("tackle")), Script(choose = use("tackle")))
-        Check.ok(rec.index("Slow used Tackle!") < rec.index("Swift used Tackle!"), "trick room: the slower first")
+        Check.ok(rec.index("Slow used Tackle!") < rec.index("Swift used Tackle!"), "speed inversion: the slower first")
         val (_, rec2) = battle(s, team(member("slow", "tackle")), team(member("swift", "quick")), Script(choose = use("tackle")), Script(choose = use("quick")))
         Check.ok(rec2.index("Swift used Quick!") < rec2.index("Slow used Tackle!"), "priority still first")
         val s2 = lab.setup(lab.rules("turnLimit" to 2))
         val (_, rec3) = battle(s2, team(member("slow", "tackle")), team(member("swift", "trick_room", "tackle")), Script(choose = use("tackle")), Script(choose = useThen("trick_room", 1, "tackle")))
-        Check.ok(rec3.index("Swift used Trick Room!") < rec3.index("Slow used Tackle!"), "round 1 in normal order")
+        Check.ok(rec3.index("Swift used Speed Inversion!") < rec3.index("Slow used Tackle!"), "round 1 in normal order")
         val texts = rec3.texts()
         val round2 = texts.subList(texts.indexOf("Turn 2"), texts.size)
         Check.ok(round2.indexOf("Slow used Tackle!") in 0 until round2.indexOf("Swift used Tackle!"), "round 2 reversed")
@@ -2479,7 +2479,7 @@ private fun fieldRuleTests(lab: EngineLab) {
 private fun shippedDataTests(root: File) {
     val dir = File(root, "Setups")
     val classic = try { Setup.load(File(dir, "Classic")) } catch (e: SetupException) { null }
-    val gacha = try { Setup.load(File(dir, "Gacha")) } catch (e: SetupException) { null }
+    val actionBar = try { Setup.load(File(dir, "Gacha")) } catch (e: SetupException) { null }
     fun mon(species: String, level: Int, ability: String?, item: String?, vararg moves: String) =
         Bakemon(species = species, level = level, ability = ability, item = item, moves = moves.toList())
     if (classic != null) {
@@ -2582,10 +2582,10 @@ private fun shippedDataTests(root: File) {
             Check.ok(lengths.isNotEmpty() && lengths.all { it in 1..3 }, "lost moves per sleep are 1..3: $lengths")
         }
     }
-    if (gacha != null) {
+    if (actionBar != null) {
         // Flat stat bonuses add up: Keen Lens (+15) and Crit Rate Up (+30); Deep Shell (+15) and Ward Talisman (+20).
         run {
-            val (m, _) = field(gacha, team(mon("ash_matron", 40, "regrowth", "keen_lens", "kindle_strike"), mon("abyss_guard", 40, "deep_shell", "ward_talisman", "shell_bash")),
+            val (m, _) = field(actionBar, team(mon("ash_matron", 40, "regrowth", "keen_lens", "kindle_strike"), mon("abyss_guard", 40, "deep_shell", "ward_talisman", "shell_bash")),
                 team(mon("night_reaper", 40, "vampiric", null, "shadow_scythe")))
             val matron = m.mon(0, 0)
             val guard = m.mon(0, 1)
@@ -2596,7 +2596,7 @@ private fun shippedDataTests(root: File) {
         }
         // Vampire Chalice (hit) and Vampiric (dealtDamage) agree: 1 HP dealt to a 1-HP target heals 1 each.
         run {
-            val (m, rec) = field(gacha, team(mon("night_reaper", 40, "vampiric", "vampire_chalice", "shadow_scythe")),
+            val (m, rec) = field(actionBar, team(mon("night_reaper", 40, "vampiric", "vampire_chalice", "shadow_scythe")),
                 team(mon("ash_matron", 40, "regrowth", null, "kindle_strike"), mon("abyss_guard", 40, "deep_shell", null, "shell_bash")))
             val reaper = m.mon(0)
             reaper.hp = reaper.maxHp / 2
@@ -2607,7 +2607,7 @@ private fun shippedDataTests(root: File) {
         }
         // Focus Bead adds 20 Accuracy to the healers too (their base Accuracy is not 0).
         run {
-            val (m, _) = field(gacha, team(mon("ash_matron", 40, "regrowth", "focus_bead", "kindle_strike"), mon("tide_warden", 40, "regrowth", "focus_bead", "riptide_jab")),
+            val (m, _) = field(actionBar, team(mon("ash_matron", 40, "regrowth", "focus_bead", "kindle_strike"), mon("tide_warden", 40, "regrowth", "focus_bead", "riptide_jab")),
                 team(mon("night_reaper", 40, "vampiric", null, "shadow_scythe")))
             for (healer in listOf(m.mon(0, 0), m.mon(0, 1))) {
                 Check.near(healer.rawStat("acc") + 20.0, healer.stat("acc"), "${healer.name}: Focus Bead adds 20 Accuracy", 1e-6)
@@ -2615,7 +2615,7 @@ private fun shippedDataTests(root: File) {
         }
         // Tidal Shell's shield does not switch off its own Reflect.
         run {
-            val (m, rec) = field(gacha, team(mon("abyss_guard", 40, "retaliation", null, "tidal_shell")), team(mon("night_reaper", 40, "bloodlust", null, "shadow_scythe")))
+            val (m, rec) = field(actionBar, team(mon("abyss_guard", 40, "retaliation", null, "tidal_shell")), team(mon("night_reaper", 40, "bloodlust", null, "shadow_scythe")))
             val guard = m.mon(0)
             val reaper = m.mon(1)
             m.use(guard, "tidal_shell")
